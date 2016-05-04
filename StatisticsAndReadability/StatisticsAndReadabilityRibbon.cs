@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Word;
@@ -11,32 +8,7 @@ namespace StatisticsAndReadability
 {
     public partial class StatisticsAndReadabilityRibbon
     {
-        private void StatisticsAndReadabilityRibbon_Load(object sender, RibbonUIEventArgs e)
-        {
-            ribbonUI = e.RibbonUI; 
-        }
-
-        private static IRibbonUI ribbonUI;
-        public StatisticsAndReadabilityRibbon()
-    : base(Globals.Factory.GetRibbonFactory())
-        {
-            InitializeComponent();
-            statisticsLabels = new[]
-{
-                this.wordsCountLabel,
-                this.charactersCountLabel,
-                paragraphsCountLabel,//Paragraphs,
-                this.sentencesCountLabel,
-
-                this.sentencesPerParagraphLabel,
-                this.wordsPerSentenceLabel,
-                this.charactersPerWordLabel,
-
-                this.passiveSentencesLabel,//Passive Sentences,
-                this.fleschReadingEaseLabel,
-                this.fleschKincaidGradeLevelLabel,
-            };
-        }
+        private static IRibbonUI _ribbonUi;
 
         /*
          *  The statistics are ordered as follows:
@@ -52,41 +24,64 @@ namespace StatisticsAndReadability
          *  and Flesch-Kincaid Grade Level.
          */
 
-        private RibbonLabel[] statisticsLabels;
+        private readonly RibbonLabel[] _statisticsLabels;
+
+        public StatisticsAndReadabilityRibbon()
+            : base(Globals.Factory.GetRibbonFactory())
+        {
+            InitializeComponent();
+            _statisticsLabels = new[]
+            {
+                wordsCountLabel,
+                charactersCountLabel,
+                paragraphsCountLabel, //Paragraphs,
+                sentencesCountLabel,
+                sentencesPerParagraphLabel,
+                wordsPerSentenceLabel,
+                charactersPerWordLabel,
+                passiveSentencesLabel, //Passive Sentences,
+                fleschReadingEaseLabel,
+                fleschKincaidGradeLevelLabel
+            };
+        }
+
+        private void StatisticsAndReadabilityRibbon_Load(object sender, RibbonUIEventArgs e)
+        {
+            _ribbonUi = e.RibbonUI;
+        }
 
         public void UpdateStats(ReadabilityStatistics readabilityStatistics)
         {
             try
             {
-                int i = 0;
+                var i = 0;
                 foreach (ReadabilityStatistic readabilityStatistic in readabilityStatistics)
                 {
-                    if (statisticsLabels[i] != null)
+                    if (_statisticsLabels[i] != null)
                     {
                         //    try
                         {
-
-                            statisticsLabels[i].Label = readabilityStatistic.Value.ToString();
-                            if (statisticsLabels[i] == fleschReadingEaseLabel)
+                            _statisticsLabels[i].Label = readabilityStatistic.Value.ToString();
+                            if (_statisticsLabels[i] == fleschReadingEaseLabel)
                             {
                                 SetFleschReadingEaseDescription(readabilityStatistic.Value);
                             }
 
 
-                            ribbonUI?.InvalidateControl(statisticsLabels[i].Id);
+                            _ribbonUi?.InvalidateControl(_statisticsLabels[i].Id);
                         }
                         //    catch
                         {
                         }
-
                     }
                     i++;
                 }
-                ribbonUI?.Invalidate();
+                _ribbonUi?.Invalidate();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Could not run UpdateStats(), reason:\n" + ex.Message, "Statistics And Readability AddIn error");
+                MessageBox.Show("Could not run UpdateStats(), reason:\n" + ex.Message,
+                    "Statistics And Readability AddIn error");
             }
             //     this.RibbonUI.Invalidate();
             //    this.RibbonUI.InvalidateControl(this.RibbonId);
@@ -95,7 +90,6 @@ namespace StatisticsAndReadability
 
         private void SetFleschReadingEaseDescription(double fleshReadingEase)
         {
-
             if (fleshReadingEase <= 30.0)
                 fleschReadingEaseLabel.Label += " (college graduate)";
             else if (fleshReadingEase <= 50.0)
@@ -121,13 +115,12 @@ namespace StatisticsAndReadability
         30.0–50.0	college	Difficult to read.
         0.0–30.0	college graduate	Very difficult to read. Best understood by university graduates.
         */
-
-
+        
         public event EventHandler UpdateStatsRequested;
 
         private void recalculateButton_Click(object sender, RibbonControlEventArgs e)
         {
-            UpdateStatsRequested?.Invoke(sender,new EventArgs());
+            UpdateStatsRequested?.Invoke(sender, new EventArgs());
         }
     }
 }
