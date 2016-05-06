@@ -24,13 +24,37 @@ namespace StatisticsAndReadability
          *  and Flesch-Kincaid Grade Level.
          */
 
-        private readonly RibbonLabel[] _statisticsLabels;
+        private RibbonLabel[] _statisticsLabels;
 
         public StatisticsAndReadabilityRibbon()
             : base(Globals.Factory.GetRibbonFactory())
         {
             InitializeComponent();
-            _statisticsLabels = new[]
+        }
+
+        private void StatisticsAndReadabilityRibbon_Load(object sender, RibbonUIEventArgs e)
+        {
+            _ribbonUi = e.RibbonUI;
+        }
+
+        private void CreateStatisticsLabelsArray()
+        {
+            if (Globals.StatisticsAndReadabilityAddIn.Application.Version == "16.0")
+                _statisticsLabels = new[]
+                {
+                wordsCountLabel,
+                charactersCountLabel,
+                paragraphsCountLabel, //Paragraphs,
+                sentencesCountLabel,
+                sentencesPerParagraphLabel,
+                wordsPerSentenceLabel,
+                charactersPerWordLabel,
+                fleschReadingEaseLabel,
+                fleschKincaidGradeLevelLabel,
+                passiveSentencesLabel, //Passive Sentences,
+            };
+            else
+                _statisticsLabels = new[]
             {
                 wordsCountLabel,
                 charactersCountLabel,
@@ -45,15 +69,14 @@ namespace StatisticsAndReadability
             };
         }
 
-        private void StatisticsAndReadabilityRibbon_Load(object sender, RibbonUIEventArgs e)
-        {
-            _ribbonUi = e.RibbonUI;
-        }
-
         public void UpdateStats(ReadabilityStatistics readabilityStatistics)
         {
+            if(_statisticsLabels==null)
+                CreateStatisticsLabelsArray();
+
             try
             {
+
                 var i = 0;
                 foreach (ReadabilityStatistic readabilityStatistic in readabilityStatistics)
                 {
@@ -115,7 +138,7 @@ namespace StatisticsAndReadability
         30.0–50.0	college	Difficult to read.
         0.0–30.0	college graduate	Very difficult to read. Best understood by university graduates.
         */
-        
+
         public event EventHandler UpdateStatsRequested;
 
         private void recalculateButton_Click(object sender, RibbonControlEventArgs e)
